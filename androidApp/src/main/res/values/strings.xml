@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">NFC Toolkit</string>
+    <string name="home_title">NFC Toolkit</string>
+    <string name="ready_to_scan">Pronto para ler</string>
+    <string name="polling_paused">Leitura pausada</string>
+    <string name="nfc_disabled">NFC desativado</string>
+    <string name="write_button_label">GRAVAR</string>
+    <string name="recent_tags">Últimas tags lidas</string>
+    <string name="history">Histórico</string>
+    <string name="settings">Configurações</string>
+    <string name="write_tag_title">O que deseja gravar?</string>
+    <string name="onboarding_title">Descubra o poder do NFC</string>
+    <string name="onboarding_subtitle">Aproxime o celular de uma tag e descubra o que ela armazena.</string>
+    <string name="next">Próximo</string>
+    <string name="skip">Pular</string>
+</resources>

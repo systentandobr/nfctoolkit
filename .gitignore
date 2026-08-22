@@ -1,0 +1,40 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# Android
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.iml
+.idea/
+.navigation/
+
+# iOS
+iosApp/build/
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+Pods/
+
+# macOS
+.DS_Store
+
+# Kotlin Multiplatform
+.kotlin/
+
+# Logs
+*.log
+
+# Stitch generated assets (keep only final resources used in app)
+writing_stitch.png
+logo_stitch.png
+logo_icon_test*.png
