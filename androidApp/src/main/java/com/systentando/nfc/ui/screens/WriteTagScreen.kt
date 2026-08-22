@@ -214,7 +214,7 @@ fun PayloadForm(
         PrimaryGradientButton(
             text = "GRAVAR",
             onClick = onWriteClick,
-            iconRes = com.systentando.nfc.R.drawable.writing_nfc
+            iconRes = com.systentando.nfc.R.drawable.ic_nfc_write
         )
 
         Row(
