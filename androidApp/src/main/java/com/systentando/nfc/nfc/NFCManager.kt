@@ -6,7 +6,9 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.Ndef
 import android.nfc.tech.NdefFormatable
+import android.os.Bundle
 import kotlinx.coroutines.*
+import kotlin.coroutines.coroutineContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -17,10 +19,13 @@ class NFCManager @Inject constructor(
 ) {
     private val pollingIntervalMs = 3000L
     private val readWindowMs = 800L
+    private val writeWindowMs = 15000L
+    @Volatile
     private var isPolling = false
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var pollingJob: Job? = null
 
+    @Volatile
     private var currentActivity: Activity? = null
     private var onTagRead: ((Tag) -> Unit)? = null
     private var onError: ((Throwable) -> Unit)? = null
@@ -59,62 +64,17 @@ class NFCManager @Inject constructor(
         this.onTagRead = onTagDetected
         this.onError = onError
         this.onWalletDetected = onWalletDetected
+
+        if (isPolling) return
+
         isPolling = true
-        mode = Mode.READ
+        if (mode != Mode.WRITE) {
+            mode = Mode.READ
+        }
 
         pollingJob?.cancel()
         pollingJob = scope.launch {
-            while (isActive && isPolling) {
-                val walletInForeground = WalletDetector.isWalletAppInForeground(context)
-                onWalletDetected?.invoke(walletInForeground)
-
-                if (walletInForeground) {
-                    delay(pollingIntervalMs)
-                    continue
-                }
-
-                val activity = currentActivity
-                if (activity == null) {
-                    delay(pollingIntervalMs)
-                    continue
-                }
-
-                try {
-                    withContext(Dispatchers.Main) {
-                        nfcAdapter.enableReaderMode(
-                            activity,
-                            { tag ->
-                                when (mode) {
-                                    Mode.READ -> onTagRead?.invoke(tag)
-                                    Mode.WRITE -> {
-                                        val success = writeOperation?.invoke(tag) ?: false
-                                        mode = Mode.READ
-                                        onWriteDone?.invoke(success)
-                                        writeOperation = null
-                                        onWriteDone = null
-                                    }
-                                }
-                            },
-                            NfcAdapter.FLAG_READER_NFC_A or
-                                NfcAdapter.FLAG_READER_NFC_B or
-                                NfcAdapter.FLAG_READER_NFC_F or
-                                NfcAdapter.FLAG_READER_NFC_V or
-                                NfcAdapter.FLAG_READER_NFC_BARCODE,
-                            null
-                        )
-                    }
-                    delay(if (mode == Mode.WRITE) pollingIntervalMs else readWindowMs)
-                    withContext(Dispatchers.Main) {
-                        nfcAdapter.disableReaderMode(activity)
-                    }
-                } catch (e: Exception) {
-                    this@NFCManager.onError?.invoke(e)
-                }
-
-                if (mode == Mode.READ) {
-                    delay(pollingIntervalMs)
-                }
-            }
+            runPollingLoop()
         }
     }
 
@@ -125,6 +85,14 @@ class NFCManager @Inject constructor(
         this.writeOperation = writeOperation
         this.onWriteDone = onDone
         mode = Mode.WRITE
+
+        if (!isPolling) {
+            isPolling = true
+            pollingJob?.cancel()
+            pollingJob = scope.launch {
+                runPollingLoop()
+            }
+        }
     }
 
     fun cancelWriting() {
@@ -139,7 +107,73 @@ class NFCManager @Inject constructor(
         writeOperation = null
         onWriteDone = null
         pollingJob?.cancel()
-        scope.cancel()
+    }
+
+    private suspend fun runPollingLoop() {
+        while (coroutineContext.isActive && isPolling) {
+            val walletInForeground = WalletDetector.isWalletAppInForeground(context)
+            onWalletDetected?.invoke(walletInForeground)
+
+            if (walletInForeground) {
+                delay(pollingIntervalMs)
+                continue
+            }
+
+            val activity = currentActivity
+            if (activity == null) {
+                delay(pollingIntervalMs)
+                continue
+            }
+
+            try {
+                withContext(Dispatchers.Main) {
+                    nfcAdapter?.enableReaderMode(
+                        activity,
+                        { tag ->
+                            when (mode) {
+                                Mode.READ -> onTagRead?.invoke(tag)
+                                Mode.WRITE -> {
+                                    val operation = writeOperation
+                                    val done = onWriteDone
+                                    if (operation != null) {
+                                        val success = operation(tag)
+                                        mode = Mode.READ
+                                        writeOperation = null
+                                        onWriteDone = null
+                                        done?.invoke(success)
+                                    }
+                                }
+                            }
+                        },
+                        NfcAdapter.FLAG_READER_NFC_A or
+                            NfcAdapter.FLAG_READER_NFC_B or
+                            NfcAdapter.FLAG_READER_NFC_F or
+                            NfcAdapter.FLAG_READER_NFC_V or
+                            NfcAdapter.FLAG_READER_NFC_BARCODE,
+                        null
+                    )
+                }
+
+                val window = if (mode == Mode.WRITE) writeWindowMs else readWindowMs
+                delay(window)
+
+                withContext(Dispatchers.Main) {
+                    nfcAdapter?.disableReaderMode(activity)
+                }
+
+                if (mode == Mode.READ) {
+                    delay(pollingIntervalMs)
+                }
+            } catch (e: Exception) {
+                onError?.invoke(e)
+                if (mode == Mode.WRITE) {
+                    onWriteDone?.invoke(false)
+                    mode = Mode.READ
+                    writeOperation = null
+                    onWriteDone = null
+                }
+            }
+        }
     }
 
     fun writeNdef(tag: Tag, operation: () -> Boolean): Boolean {

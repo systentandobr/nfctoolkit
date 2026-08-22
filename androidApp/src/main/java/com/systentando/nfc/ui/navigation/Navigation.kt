@@ -1,7 +1,5 @@
 package com.systentando.nfc.ui.navigation
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,6 +18,7 @@ import com.systentando.nfc.ui.screens.SplashScreen
 import com.systentando.nfc.ui.screens.TagDetailScreen
 import com.systentando.nfc.ui.screens.WriteTagScreen
 import com.systentando.nfc.ui.viewmodels.NFCViewModel
+import com.systentando.nfc.util.openWhatsApp
 import com.systentando.nfc.ui.viewmodels.SplashViewModel
 import com.systentando.nfc.ui.viewmodels.WriteTagViewModel
 
@@ -46,22 +45,11 @@ fun AppNavigation(
     splashViewModel.setPendingTag(state.pendingTag)
 
     LaunchedEffect(state.lastTag) {
-        val tag = state.lastTag
-        if (tag != null) {
-            val phoneRecord = tag.records
-                .filterIsInstance<com.systentando.nfc.domain.model.NDEFRecord.Uri>()
-                .firstOrNull { it.uri.startsWith("tel:") }
-            if (phoneRecord != null) {
-                val digits = phoneRecord.uri.removePrefix("tel:").replace("[^0-9]".toRegex(), "")
-                if (digits.isNotBlank()) {
-                    val waUri = Uri.parse("https://wa.me/$digits")
-                    val intent = Intent(Intent.ACTION_VIEW, waUri)
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    }
-                }
-            }
-        }
+        val tag = state.lastTag ?: return@LaunchedEffect
+        val phoneRecord = tag.records
+            .filterIsInstance<com.systentando.nfc.domain.model.NDEFRecord.Uri>()
+            .firstOrNull { it.uri.startsWith("tel:") }
+        phoneRecord?.let { openWhatsApp(context, it.uri.removePrefix("tel:")) }
     }
 
     NavHost(

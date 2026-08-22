@@ -4,9 +4,7 @@ import kotlinx.coroutines.launch
 
 import android.Manifest
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,18 +26,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.systentando.nfc.R
 import com.systentando.nfc.domain.model.WritePayload
 import com.systentando.nfc.nfc.WifiInfoReader
 import com.systentando.nfc.util.COUNTRY_CODES
@@ -47,7 +41,15 @@ import com.systentando.nfc.util.DEFAULT_COUNTRY
 import com.systentando.nfc.util.LocationHelper
 import com.systentando.nfc.util.PhoneVisualTransformation
 import com.systentando.nfc.util.removeNonDigits
+import com.systentando.nfc.ui.components.OutlinedTealButton
+import com.systentando.nfc.ui.components.PrimaryGradientButton
+import com.systentando.nfc.ui.components.StatusMessage
+import com.systentando.nfc.ui.components.WaitingNfcMessage
 import com.systentando.nfc.ui.components.WiFiQRCodeGenerator
+import com.systentando.nfc.util.openGoogleMaps
+import com.systentando.nfc.util.openUrl
+import com.systentando.nfc.util.openWhatsApp
+import com.systentando.nfc.util.shareWifi
 import com.systentando.nfc.ui.theme.*
 import com.systentando.nfc.ui.viewmodels.WriteTagViewModel
 
@@ -76,28 +78,11 @@ fun WriteTagScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.payload) {
-        if (state.payload != null) {
-            viewModel.startWaitingForTag()
-        } else {
-            viewModel.cancelWriting()
-        }
-    }
-
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("O que deseja gravar?", color = OnSurface) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null,
-                            tint = OnSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+            com.systentando.nfc.ui.components.NfcTopAppBar(
+                title = "O que deseja gravar?",
+                onBackClick = onBackClick
             )
         }
     ) { padding ->
@@ -226,31 +211,11 @@ fun PayloadForm(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Button(
+        PrimaryGradientButton(
+            text = "GRAVAR",
             onClick = onWriteClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.horizontalGradient(listOf(PrimaryTeal, SecondaryGreen)),
-                        shape = MaterialTheme.shapes.large
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "GRAVAR",
-                    color = OnSurface,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
+            iconRes = com.systentando.nfc.R.drawable.writing_nfc
+        )
 
         Row(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -272,34 +237,9 @@ fun PayloadForm(
         }
 
         if (state.isWriting) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.writing_nfc),
-                    contentDescription = null,
-                    modifier = Modifier.size(180.dp)
-                )
-                Text(
-                    text = "Aguardando tag NFC...",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = PrimaryTeal,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "Aproxime o celular de uma tag vazia para gravar.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurfaceMuted,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
+            WaitingNfcMessage()
         }
-        state.error?.let { Text(it, color = ErrorRed, modifier = Modifier.padding(top = 8.dp)) }
-        if (state.writeSuccess) {
-            Text("Gravação concluída!", color = SuccessGreen, modifier = Modifier.padding(top = 8.dp))
-        }
+        StatusMessage(success = state.writeSuccess, error = state.error)
 
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -327,13 +267,11 @@ fun UrlForm(
             label = "URL"
         )
         if (payload.url.isNotBlank()) {
-            OutlinedButton(
+            OutlinedTealButton(
+                text = "Abrir no navegador e confirmar",
                 onClick = { openUrl(context, payload.url) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-            ) {
-                Text("Abrir no navegador e confirmar")
-            }
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -404,7 +342,8 @@ fun LocationForm(
                 Text("Buscar", color = OnSurface)
             }
 
-            OutlinedButton(
+            OutlinedTealButton(
+                text = "Usar local atual",
                 onClick = {
                     scope.launch {
                         isLoading = true
@@ -424,11 +363,8 @@ fun LocationForm(
                         isLoading = false
                     }
                 },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-            ) {
-                Text("Usar local atual")
-            }
+                modifier = Modifier.weight(1f)
+            )
         }
 
         if (isLoading) {
@@ -451,13 +387,11 @@ fun LocationForm(
             )
         }
 
-        OutlinedButton(
+        OutlinedTealButton(
+            text = "Abrir no Google Maps",
             onClick = { openGoogleMaps(context, payload.latitude, payload.longitude) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-        ) {
-            Text("Abrir no Google Maps")
-        }
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 
@@ -504,7 +438,8 @@ fun WiFiForm(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            OutlinedButton(
+            OutlinedTealButton(
+                text = "Usar Wi-Fi conectada",
                 onClick = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         permissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -513,18 +448,13 @@ fun WiFiForm(
                         info?.let { onChange(payload.copy(ssid = it.ssid)) }
                     }
                 },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-            ) {
-                Text("Usar Wi-Fi conectada")
-            }
-            OutlinedButton(
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedTealButton(
+                text = "Compartilhar",
                 onClick = { shareWifi(context, payload.ssid, payload.password) },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-            ) {
-                Text("Compartilhar")
-            }
+                modifier = Modifier.weight(1f)
+            )
         }
 
         bitmap?.let {
@@ -619,13 +549,11 @@ fun PhoneForm(
         )
 
         if (payload.countryCode.isNotBlank() && digitsOnly.isNotBlank()) {
-            OutlinedButton(
+            OutlinedTealButton(
+                text = "Abrir conversa no WhatsApp",
                 onClick = { openWhatsApp(context, payload.countryCode + digitsOnly) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-            ) {
-                Text("Abrir conversa no WhatsApp")
-            }
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -686,41 +614,4 @@ fun NfcTextField(
     )
 }
 
-private fun openUrl(context: Context, url: String) {
-    val fixedUrl = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixedUrl))
-    context.startActivity(intent)
-}
 
-private fun openGoogleMaps(context: Context, latitude: Double, longitude: Double) {
-    val uri = Uri.parse("geo:$latitude,$longitude?q=$latitude,$longitude")
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    intent.setPackage("com.google.android.apps.maps")
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
-    } else {
-        val fallback = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=$latitude,$longitude"))
-        context.startActivity(fallback)
-    }
-}
-
-private fun openWhatsApp(context: Context, number: String) {
-    val digits = number.replace(Regex("[^0-9]"), "")
-    val uri = Uri.parse("https://wa.me/$digits")
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    context.startActivity(intent)
-}
-
-private fun shareWifi(context: Context, ssid: String, password: String) {
-    val text = buildString {
-        appendLine("Rede Wi-Fi")
-        appendLine("SSID: $ssid")
-        if (password.isNotBlank()) appendLine("Senha: $password")
-    }
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-    }
-    val chooser = Intent.createChooser(intent, "Compartilhar Wi-Fi")
-    context.startActivity(chooser)
-}

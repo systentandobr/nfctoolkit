@@ -1,9 +1,8 @@
 package com.systentando.nfc.ui.screens
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,18 +16,22 @@ import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.systentando.nfc.domain.model.NDEFRecord
 import com.systentando.nfc.domain.model.NFCTag
+import com.systentando.nfc.ui.components.*
 import com.systentando.nfc.ui.theme.*
+import com.systentando.nfc.ui.viewmodels.NFCViewModel
+import com.systentando.nfc.util.openGoogleMaps
+import com.systentando.nfc.util.openWhatsApp
+import com.systentando.nfc.util.shareText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagDetailScreen(
     tag: NFCTag?,
-    viewModel: com.systentando.nfc.ui.viewmodels.NFCViewModel,
+    viewModel: NFCViewModel,
     onBackClick: () -> Unit,
     onDeleteTag: () -> Unit = {}
 ) {
@@ -44,18 +47,9 @@ fun TagDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Detalhes da Tag", color = OnSurface) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null,
-                            tint = OnSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+            NfcTopAppBar(
+                title = "Detalhes da Tag",
+                onBackClick = onBackClick
             )
         }
     ) { padding ->
@@ -73,12 +67,7 @@ fun TagDetailScreen(
             }
 
             item {
-                Text(
-                    text = "Registros NDEF",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = OnSurface,
-                    fontWeight = FontWeight.SemiBold
-                )
+                SectionTitle(text = "Registros NDEF")
             }
 
             items(tag.records.size) { index ->
@@ -134,49 +123,18 @@ private fun NDEFRecord.asShareText(): String {
     }
 }
 
-private fun shareText(context: Context, text: String) {
-    val intent = Intent(Intent.ACTION_SEND).apply {
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, text)
-    }
-    val chooser = Intent.createChooser(intent, "Compartilhar dados da tag")
-    context.startActivity(chooser)
-}
-
 @Composable
 fun MetadataCard(tag: NFCTag) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-        shape = MaterialTheme.shapes.large
-    ) {
+    NfcCard {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LabeledValue(label = "UID", value = tag.uid)
-            LabeledValue(label = "Chip", value = tag.chipType)
-            LabeledValue(label = "Tecnologia", value = tag.technology)
-
+            NfcLabelValue(label = "UID", value = tag.uid)
+            NfcLabelValue(label = "Chip", value = tag.chipType)
+            NfcLabelValue(label = "Tecnologia", value = tag.technology)
             MemoryBar(used = tag.usedBytes, total = tag.sizeBytes)
         }
-    }
-}
-
-@Composable
-fun LabeledValue(label: String, value: String) {
-    Column {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = PrimaryTeal
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            color = OnSurface,
-            fontFamily = FontFamily.Monospace
-        )
     }
 }
 
@@ -208,28 +166,19 @@ fun MemoryBar(used: Int, total: Int) {
 
 enum class UriKind { NONE, GEO, PHONE, OTHER }
 
+data class RecordInfo(
+    val icon: androidx.compose.ui.graphics.vector.ImageVector,
+    val label: String,
+    val content: String,
+    val kind: UriKind
+)
+
 @Composable
 fun RecordCard(record: NDEFRecord) {
     val context = LocalContext.current
-    val (icon, label, content, kind) = when (record) {
-        is NDEFRecord.Text -> RecordInfo(Icons.Default.TextFields, "Texto", record.text, UriKind.NONE)
-        is NDEFRecord.Uri -> {
-            when {
-                record.uri.startsWith("geo:") -> RecordInfo(Icons.Default.LocationOn, "Localização", record.uri, UriKind.GEO)
-                record.uri.startsWith("tel:") -> RecordInfo(Icons.Default.Phone, "Telefone", record.uri, UriKind.PHONE)
-                else -> RecordInfo(Icons.Default.Link, "URL", record.uri, UriKind.OTHER)
-            }
-        }
-        is NDEFRecord.Mime -> RecordInfo(Icons.Default.AttachFile, record.type, record.payload, UriKind.NONE)
-        is NDEFRecord.External -> RecordInfo(Icons.Default.Memory, record.type, "<dados binários>", UriKind.NONE)
-        is NDEFRecord.Unknown -> RecordInfo(Icons.Default.Help, record.type, "<desconhecido>", UriKind.NONE)
-    }
+    val info = record.toRecordInfo()
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
-        shape = MaterialTheme.shapes.large
-    ) {
+    NfcCard {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,19 +191,19 @@ fun RecordCard(record: NDEFRecord) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Icon(
-                    imageVector = icon,
+                    imageVector = info.icon,
                     contentDescription = null,
                     tint = PrimaryTeal,
                     modifier = Modifier.size(28.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = label,
+                        text = info.label,
                         style = MaterialTheme.typography.labelMedium,
                         color = PrimaryTeal
                     )
                     Text(
-                        text = content,
+                        text = info.content,
                         style = MaterialTheme.typography.bodyLarge,
                         color = OnSurface
                     )
@@ -262,68 +211,56 @@ fun RecordCard(record: NDEFRecord) {
             }
 
             if (record is NDEFRecord.Uri) {
-                when (kind) {
-                    UriKind.GEO -> {
-                        val coords = record.uri.removePrefix("geo:").split(",")
-                        if (coords.size >= 2) {
-                            val lat = coords[0].toDoubleOrNull()
-                            val lng = coords[1].toDoubleOrNull()
-                            if (lat != null && lng != null) {
-                                OutlinedButton(
-                                    onClick = { openGoogleMaps(context, lat, lng) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-                                ) {
-                                    Text("Abrir no Google Maps")
-                                }
-                            }
-                        }
-                    }
-                    UriKind.PHONE -> {
-                        val number = record.uri.removePrefix("tel:")
-                        OutlinedButton(
-                            onClick = { openWhatsApp(context, number) },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
-                        ) {
-                            Text("Abrir no WhatsApp")
-                        }
-                    }
-                    else -> {}
-                }
+                UriActionButtons(record = record, context = context)
             }
         }
     }
 }
 
-data class RecordInfo(
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val label: String,
-    val content: String,
-    val kind: UriKind
-)
-
-private fun openWhatsApp(context: Context, number: String) {
-    val digits = number.replace("[^0-9]".toRegex(), "")
-    val uri = Uri.parse("https://wa.me/$digits")
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
+private fun NDEFRecord.toRecordInfo(): RecordInfo {
+    return when (this) {
+        is NDEFRecord.Text -> RecordInfo(Icons.Default.TextFields, "Texto", text, UriKind.NONE)
+        is NDEFRecord.Uri -> {
+            when {
+                uri.startsWith("geo:") -> RecordInfo(Icons.Default.LocationOn, "Localização", uri, UriKind.GEO)
+                uri.startsWith("tel:") -> RecordInfo(Icons.Default.Phone, "Telefone", uri, UriKind.PHONE)
+                else -> RecordInfo(Icons.Default.Link, "URL", uri, UriKind.OTHER)
+            }
+        }
+        is NDEFRecord.Mime -> RecordInfo(Icons.Default.AttachFile, type, payload, UriKind.NONE)
+        is NDEFRecord.External -> RecordInfo(Icons.Default.Memory, type, "<dados binários>", UriKind.NONE)
+        is NDEFRecord.Unknown -> RecordInfo(Icons.Default.Help, type, "<desconhecido>", UriKind.NONE)
     }
 }
 
-private fun openGoogleMaps(context: Context, latitude: Double, longitude: Double) {
-    val uri = Uri.parse("geo:$latitude,$longitude?q=$latitude,$longitude")
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    intent.setPackage("com.google.android.apps.maps")
-    if (intent.resolveActivity(context.packageManager) != null) {
-        context.startActivity(intent)
-    } else {
-        val fallback = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.google.com/maps/search/?api=1&query=$latitude,$longitude"))
-        context.startActivity(fallback)
+@Composable
+private fun UriActionButtons(record: NDEFRecord.Uri, context: Context) {
+    when {
+        record.uri.startsWith("geo:") -> {
+            val coords = record.uri.removePrefix("geo:").split(",")
+            if (coords.size >= 2) {
+                val lat = coords[0].toDoubleOrNull()
+                val lng = coords[1].toDoubleOrNull()
+                if (lat != null && lng != null) {
+                    OutlinedTealButton(
+                        text = "Abrir no Google Maps",
+                        onClick = { openGoogleMaps(context, lat, lng) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+        record.uri.startsWith("tel:") -> {
+            val number = record.uri.removePrefix("tel:")
+            OutlinedTealButton(
+                text = "Abrir no WhatsApp",
+                onClick = { openWhatsApp(context, number) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        else -> {}
     }
 }
-
 
 @Composable
 fun ActionRow(
