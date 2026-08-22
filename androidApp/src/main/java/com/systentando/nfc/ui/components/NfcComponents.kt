@@ -91,7 +91,7 @@ fun PrimaryGradientButton(
 @Composable
 fun WaitingNfcMessage(
     modifier: Modifier = Modifier,
-    imageRes: Int = R.drawable.writing_nfc,
+    imageRes: Int = R.drawable.ic_awaiting_tag,
     title: String = "Aproxime a tag NFC",
     subtitle: String = "Toque o celular em uma tag vazia para gravar."
 ) {
@@ -103,7 +103,7 @@ fun WaitingNfcMessage(
         Image(
             painter = painterResource(id = imageRes),
             contentDescription = null,
-            modifier = Modifier.size(120.dp)
+            modifier = Modifier.size(64.dp)
         )
         Text(
             text = title,
