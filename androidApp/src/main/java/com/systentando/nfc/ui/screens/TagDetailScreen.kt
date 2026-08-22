@@ -2,7 +2,6 @@ package com.systentando.nfc.ui.screens
 
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import com.systentando.nfc.domain.model.NDEFRecord
 import com.systentando.nfc.domain.model.NFCTag
 import com.systentando.nfc.ui.components.*
-import com.systentando.nfc.ui.theme.*
 import com.systentando.nfc.ui.viewmodels.NFCViewModel
 import com.systentando.nfc.util.openGoogleMaps
 import com.systentando.nfc.util.openWhatsApp
@@ -37,6 +35,7 @@ fun TagDetailScreen(
 ) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
+    val colors = MaterialTheme.colorScheme
 
     if (tag == null) {
         onBackClick()
@@ -56,7 +55,7 @@ fun TagDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundDark)
+                .background(colors.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -78,7 +77,7 @@ fun TagDetailScreen(
                 item {
                     Text(
                         text = "Nenhum registro NDEF encontrado",
-                        color = OnSurfaceMuted,
+                        color = colors.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -140,25 +139,26 @@ fun MetadataCard(tag: NFCTag) {
 
 @Composable
 fun MemoryBar(used: Int, total: Int) {
+    val colors = MaterialTheme.colorScheme
     val ratio = if (total > 0) used.toFloat() / total else 0f
     Column {
         Text(
             text = "Memória: $used / $total bytes",
             style = MaterialTheme.typography.bodySmall,
-            color = OnSurfaceMuted
+            color = colors.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(8.dp))
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(12.dp)
-                .background(SurfaceVariant, RoundedCornerShape(6.dp))
+                .background(colors.surfaceVariant, RoundedCornerShape(6.dp))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(ratio.coerceIn(0f, 1f))
                     .fillMaxHeight()
-                    .background(PrimaryTeal, RoundedCornerShape(6.dp))
+                    .background(colors.primary, RoundedCornerShape(6.dp))
             )
         }
     }
@@ -176,6 +176,7 @@ data class RecordInfo(
 @Composable
 fun RecordCard(record: NDEFRecord) {
     val context = LocalContext.current
+    val colors = MaterialTheme.colorScheme
     val info = record.toRecordInfo()
 
     NfcCard {
@@ -193,19 +194,19 @@ fun RecordCard(record: NDEFRecord) {
                 Icon(
                     imageVector = info.icon,
                     contentDescription = null,
-                    tint = PrimaryTeal,
+                    tint = colors.primary,
                     modifier = Modifier.size(28.dp)
                 )
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = info.label,
                         style = MaterialTheme.typography.labelMedium,
-                        color = PrimaryTeal
+                        color = colors.primary
                     )
                     Text(
                         text = info.content,
                         style = MaterialTheme.typography.bodyLarge,
-                        color = OnSurface
+                        color = colors.onSurface
                     )
                 }
             }
@@ -300,13 +301,14 @@ fun ActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = OnSurface)
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.onSurface)
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(imageVector = icon, contentDescription = null, tint = PrimaryTeal)
+            Icon(imageVector = icon, contentDescription = null, tint = colors.primary)
             Text(label, style = MaterialTheme.typography.labelSmall)
         }
     }

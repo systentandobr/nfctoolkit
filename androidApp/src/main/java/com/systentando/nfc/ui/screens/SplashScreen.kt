@@ -41,7 +41,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center
     ) {
         if (onboardingSeen) {
@@ -58,18 +58,18 @@ fun SplashScreen(
                 Text(
                     text = "NFC Toolkit",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = OnSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
 
                 Text(
                     text = "by Systentando",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = OnSurfaceMuted
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         } else {
-            CircularProgressIndicator(color = PrimaryTeal)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
     }
 }

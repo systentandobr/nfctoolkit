@@ -16,8 +16,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.systentando.nfc.R
-import androidx.compose.ui.graphics.painter.Painter
-import com.systentando.nfc.ui.theme.*
+import com.systentando.nfc.ui.theme.GradientEnd
+import com.systentando.nfc.ui.theme.GradientStart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,18 +26,19 @@ fun NfcTopAppBar(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     TopAppBar(
-        title = { Text(title, color = OnSurface) },
+        title = { Text(title, color = colors.onSurface) },
         navigationIcon = {
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = OnSurface
+                    tint = colors.onSurface
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark),
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.background),
         modifier = modifier
     )
 }
@@ -49,6 +50,7 @@ fun PrimaryGradientButton(
     modifier: Modifier = Modifier,
     iconRes: Int? = null
 ) {
+    val colors = MaterialTheme.colorScheme
     Button(
         onClick = onClick,
         modifier = modifier
@@ -61,7 +63,7 @@ fun PrimaryGradientButton(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    brush = Brush.horizontalGradient(listOf(PrimaryTeal, SecondaryGreen)),
+                    brush = Brush.horizontalGradient(listOf(GradientStart, GradientEnd)),
                     shape = MaterialTheme.shapes.large
                 ),
             contentAlignment = Alignment.Center
@@ -79,7 +81,7 @@ fun PrimaryGradientButton(
                 }
                 Text(
                     text = text,
-                    color = OnSurface,
+                    color = colors.onPrimary,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -95,6 +97,7 @@ fun WaitingNfcMessage(
     title: String = "Aproxime a tag NFC",
     subtitle: String = "Toque o celular em uma tag vazia para gravar."
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -108,13 +111,13 @@ fun WaitingNfcMessage(
         Text(
             text = title,
             style = MaterialTheme.typography.titleMedium,
-            color = PrimaryTeal,
+            color = colors.primary,
             fontWeight = FontWeight.Bold
         )
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = OnSurfaceMuted,
+            color = colors.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
@@ -125,11 +128,12 @@ fun StatusMessage(
     success: Boolean,
     error: String?
 ) {
+    val colors = MaterialTheme.colorScheme
     error?.let {
-        Text(it, color = ErrorRed, modifier = Modifier.padding(top = 8.dp))
+        Text(it, color = colors.error, modifier = Modifier.padding(top = 8.dp))
     }
     if (success) {
-        Text("Gravação concluída!", color = SuccessGreen, modifier = Modifier.padding(top = 8.dp))
+        Text("Gravação concluída!", color = colors.secondary, modifier = Modifier.padding(top = 8.dp))
     }
 }
 
@@ -138,9 +142,10 @@ fun NfcCard(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         shape = MaterialTheme.shapes.large
     ) {
         content()
@@ -153,10 +158,11 @@ fun OutlinedTealButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     OutlinedButton(
         onClick = onClick,
         modifier = modifier,
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
+        colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.primary)
     ) {
         Text(text)
     }
@@ -168,16 +174,17 @@ fun NfcLabelValue(
     value: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(modifier = modifier) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = PrimaryTeal
+            color = colors.primary
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyLarge,
-            color = OnSurface,
+            color = colors.onSurface,
             fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace
         )
     }
@@ -188,10 +195,11 @@ fun SectionTitle(
     text: String,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Text(
         text = text,
         style = MaterialTheme.typography.titleLarge,
-        color = OnSurface,
+        color = colors.onSurface,
         fontWeight = FontWeight.SemiBold,
         modifier = modifier
     )

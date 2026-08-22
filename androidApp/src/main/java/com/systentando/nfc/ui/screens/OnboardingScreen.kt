@@ -17,7 +17,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.systentando.nfc.R
-import com.systentando.nfc.ui.theme.*
+import com.systentando.nfc.ui.theme.GradientEnd
+import com.systentando.nfc.ui.theme.GradientStart
 import com.systentando.nfc.ui.viewmodels.OnboardingViewModel
 
 data class OnboardingPage(
@@ -56,11 +57,12 @@ fun OnboardingScreen(
 
     var currentPage by remember { mutableStateOf(0) }
     val page = pages[currentPage]
+    val colors = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDark)
+            .background(colors.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -74,7 +76,7 @@ fun OnboardingScreen(
             }) {
                 Text(
                     text = "Pular",
-                    color = PrimaryTeal,
+                    color = colors.primary,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -95,7 +97,7 @@ fun OnboardingScreen(
         Text(
             text = page.title,
             style = MaterialTheme.typography.headlineSmall,
-            color = OnSurface,
+            color = colors.onSurface,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -105,7 +107,7 @@ fun OnboardingScreen(
         Text(
             text = page.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = OnSurfaceMuted,
+            color = colors.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
@@ -122,7 +124,7 @@ fun OnboardingScreen(
                         .width(if (index == currentPage) 24.dp else 10.dp)
                         .height(10.dp)
                         .clip(RoundedCornerShape(5.dp))
-                        .background(if (index == currentPage) PrimaryTeal else SurfaceVariant)
+                        .background(if (index == currentPage) colors.primary else colors.surfaceVariant)
                 )
             }
         }
@@ -149,7 +151,7 @@ fun OnboardingScreen(
                     .fillMaxSize()
                     .background(
                         brush = Brush.horizontalGradient(
-                            colors = listOf(PrimaryTeal, SecondaryGreen)
+                            colors = listOf(GradientStart, GradientEnd)
                         ),
                         shape = MaterialTheme.shapes.large
                     ),
@@ -157,7 +159,7 @@ fun OnboardingScreen(
             ) {
                 Text(
                     text = page.actionLabel,
-                    color = OnSurface,
+                    color = colors.onPrimary,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
                 )

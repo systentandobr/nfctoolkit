@@ -25,7 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.systentando.nfc.R
 import com.systentando.nfc.domain.model.NFCTag
-import com.systentando.nfc.ui.theme.*
+import com.systentando.nfc.ui.theme.GradientEnd
+import com.systentando.nfc.ui.theme.GradientStart
 import com.systentando.nfc.ui.viewmodels.NFCViewModel
 
 @Composable
@@ -45,6 +46,7 @@ fun HomeScreen(
         }
     }
 
+    val colors = MaterialTheme.colorScheme
     Scaffold(
         bottomBar = {
             BottomNavigationBar(
@@ -57,7 +59,7 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundDark)
+                .background(colors.background)
                 .padding(padding)
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -88,7 +90,7 @@ fun HomeScreen(
                             .size(160.dp)
                             .background(
                                 brush = Brush.linearGradient(
-                                    colors = listOf(PrimaryTeal, SecondaryGreen)
+                                    colors = listOf(GradientStart, GradientEnd)
                                 ),
                                 shape = CircleShape
                             )
@@ -96,7 +98,7 @@ fun HomeScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = stringResource(id = R.string.write_button_label),
-                                color = OnSurface,
+                                color = colors.onPrimary,
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -109,7 +111,7 @@ fun HomeScreen(
                 Text(
                     text = stringResource(id = R.string.recent_tags),
                     style = MaterialTheme.typography.titleLarge,
-                    color = OnSurface,
+                    color = colors.onSurface,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -133,7 +135,7 @@ fun HomeScreen(
                     Text(
                         text = "Aproxime uma tag para começar",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = OnSurfaceMuted,
+                        color = colors.onSurfaceVariant,
                         modifier = Modifier.padding(top = 16.dp)
                     )
                 }
@@ -149,11 +151,12 @@ fun PollingStatusIndicator(
     nfcEnabled: Boolean,
     message: String?
 ) {
+    val colors = MaterialTheme.colorScheme
     val color = when {
-        !nfcEnabled -> ErrorRed
-        isWalletDetected -> WarningYellow
-        isPolling -> SuccessGreen
-        else -> OnSurfaceMuted
+        !nfcEnabled -> colors.error
+        isWalletDetected -> colors.tertiary
+        isPolling -> colors.secondary
+        else -> colors.onSurfaceVariant
     }
     val label = when {
         !nfcEnabled -> message ?: stringResource(id = R.string.nfc_disabled)
@@ -178,7 +181,7 @@ fun PollingStatusIndicator(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyLarge,
-            color = OnSurface
+            color = colors.onSurface
         )
     }
 }
@@ -189,11 +192,12 @@ fun RecentTagCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = colors.surface),
         shape = MaterialTheme.shapes.large
     ) {
         Column(
@@ -208,13 +212,13 @@ fun RecentTagCard(
                 Text(
                     text = tag.chipType,
                     style = MaterialTheme.typography.labelMedium,
-                    color = PrimaryTeal
+                    color = colors.primary
                 )
                 IconButton(onClick = onDelete) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = null,
-                        tint = ErrorRed,
+                        tint = colors.error,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -222,12 +226,12 @@ fun RecentTagCard(
             Text(
                 text = tag.uid,
                 style = MaterialTheme.typography.bodyLarge,
-                color = OnSurface
+                color = colors.onSurface
             )
             Text(
                 text = "NTAG213 • ${formatTime(tag.readAt)}",
                 style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceMuted
+                color = colors.onSurfaceVariant
             )
         }
     }
@@ -249,8 +253,9 @@ fun BottomNavigationBar(
     onAdvancedClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     NavigationBar(
-        containerColor = SurfaceDark
+        containerColor = colors.surface
     ) {
         NavigationBarItem(
             icon = { Icon(Icons.Default.History, contentDescription = null) },

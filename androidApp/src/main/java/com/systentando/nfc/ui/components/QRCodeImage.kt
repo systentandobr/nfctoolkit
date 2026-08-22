@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
-import com.systentando.nfc.ui.theme.SurfaceDark
+
 
 @Composable
 fun QRCodeImage(
@@ -26,7 +26,7 @@ fun QRCodeImage(
             .fillMaxWidth()
             .height(240.dp)
             .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = MaterialTheme.shapes.large
     ) {
         Box(

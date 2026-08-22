@@ -92,7 +92,7 @@ fun WriteTagScreen(
                 onTypeSelected = { viewModel.selectType(it) },
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(BackgroundDark)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(padding)
                     .padding(horizontal = 16.dp)
             )
@@ -105,7 +105,7 @@ fun WriteTagScreen(
                 onReset = viewModel::resetCurrentPayload,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(BackgroundDark)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(padding)
             )
         }
@@ -145,7 +145,7 @@ internal fun WriteOptionCard(
         modifier = Modifier
             .fillMaxWidth()
             .aspectRatio(1f),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = MaterialTheme.shapes.large
     ) {
         Column(
@@ -158,14 +158,14 @@ internal fun WriteOptionCard(
             Icon(
                 imageVector = option.icon,
                 contentDescription = null,
-                tint = PrimaryTeal,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(40.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = option.label,
                 style = MaterialTheme.typography.bodyLarge,
-                color = OnSurface,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -192,7 +192,7 @@ fun PayloadForm(
         Text(
             text = "Preencha os dados",
             style = MaterialTheme.typography.headlineSmall,
-            color = OnSurface,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
         )
@@ -224,7 +224,7 @@ fun PayloadForm(
             OutlinedButton(
                 onClick = onBack,
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = OnSurface)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
             ) {
                 Text("Voltar")
             }
@@ -232,7 +232,7 @@ fun PayloadForm(
                 onClick = onReset,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Limpar", color = OnSurfaceMuted)
+                Text("Limpar", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
 
@@ -337,9 +337,9 @@ fun LocationForm(
                     }
                 },
                 modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Buscar", color = OnSurface)
+                Text("Buscar", color = MaterialTheme.colorScheme.onSurface)
             }
 
             OutlinedTealButton(
@@ -368,9 +368,9 @@ fun LocationForm(
         }
 
         if (isLoading) {
-            CircularProgressIndicator(color = PrimaryTeal, modifier = Modifier.align(Alignment.CenterHorizontally))
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.CenterHorizontally))
         }
-        error?.let { Text(it, color = ErrorRed) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             NfcTextField(
@@ -499,12 +499,12 @@ fun PhoneForm(
                 readOnly = true,
                 label = { Text("País") },
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceDark,
-                    unfocusedContainerColor = SurfaceDark,
-                    focusedTextColor = OnSurface,
-                    unfocusedTextColor = OnSurface,
-                    focusedLabelColor = PrimaryTeal,
-                    unfocusedLabelColor = OnSurfaceMuted
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -513,14 +513,14 @@ fun PhoneForm(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(SurfaceDark)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
                 COUNTRY_CODES.forEach { country ->
                     DropdownMenuItem(
                         text = {
                             Text(
                                 text = "${country.flag} ${country.code} - ${country.country}",
-                                color = OnSurface
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         },
                         onClick = {
@@ -598,14 +598,14 @@ fun NfcTextField(
         onValueChange = onValueChange,
         label = { Text(label) },
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = SurfaceDark,
-            unfocusedContainerColor = SurfaceDark,
-            focusedTextColor = OnSurface,
-            unfocusedTextColor = OnSurface,
-            focusedLabelColor = PrimaryTeal,
-            unfocusedLabelColor = OnSurfaceMuted,
-            focusedIndicatorColor = PrimaryTeal,
-            unfocusedIndicatorColor = OnSurfaceMuted
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,

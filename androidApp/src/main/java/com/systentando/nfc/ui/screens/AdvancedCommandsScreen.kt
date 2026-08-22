@@ -47,24 +47,24 @@ fun AdvancedCommandsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Comandos Avançados", color = OnSurface) },
+                title = { Text("Comandos Avançados", color = MaterialTheme.colorScheme.onSurface) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
                             contentDescription = null,
-                            tint = OnSurface
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
             )
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundDark)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding)
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -81,10 +81,10 @@ fun AdvancedCommandsScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.padding(top = 16.dp)
                     ) {
-                        CircularProgressIndicator(color = PrimaryTeal)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Text(
                             text = state.writeMessage ?: "Aproxime a tag NFC...",
-                            color = OnSurfaceMuted,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium
                         )
                     }
@@ -93,7 +93,7 @@ fun AdvancedCommandsScreen(
                 state.writeMessage?.takeIf { !state.isWriting }?.let { message ->
                     Text(
                         text = message,
-                        color = if (state.writeResult == true) SuccessGreen else ErrorRed,
+                        color = if (state.writeResult == true) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -101,7 +101,7 @@ fun AdvancedCommandsScreen(
 
                 Text(
                     text = "Aproxime a tag NFC antes de executar um comando.",
-                    color = OnSurfaceMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(top = 16.dp)
                 )
@@ -126,7 +126,7 @@ private fun CommandCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceDark),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         shape = MaterialTheme.shapes.large
     ) {
         Row(
@@ -139,26 +139,26 @@ private fun CommandCard(
             Icon(
                 imageVector = command.icon,
                 contentDescription = null,
-                tint = PrimaryTeal,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(28.dp)
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = command.title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = OnSurface,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = command.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = OnSurfaceMuted
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Icon(
                 imageVector = Icons.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = OnSurfaceMuted
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
